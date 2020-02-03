@@ -1,0 +1,16 @@
+
+AddHandler cgi-script .pl
+
+Options +ExecCGI
+
+RewriteEngine on
+
+RewriteCond %{REQUEST_FILENAME} !-f
+
+RewriteCond %{REQUEST_FILENAME} !-d
+
+RewriteCond %{REQUEST_FILENAME} !/app/widgets/.*
+
+RewriteCond %{REQUEST_FILENAME} !/app/layouts/.*
+
+RewriteRule ^(.*)$ index.php/$1 [L]

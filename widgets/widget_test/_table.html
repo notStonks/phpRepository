@@ -1,0 +1,54 @@
+<div id="table">
+
+<table class="table">
+  <thead>
+    <tr>
+      <th scope="col">#</th>
+      <th scope="col">Name</th>
+      <th scope="col">LastName</th>
+      <th scope="col">Status</th>
+    </tr>
+  </thead>
+  <tbody id="table-body">
+
+  </tbody>
+</table>
+
+<script>
+  
+
+var xhr = new XMLHttpRequest();
+
+xhr.open('GET', 'https://g2.qzo.su/test/getListUsers', false);
+
+xhr.send();
+
+if (xhr.status != 200) {
+  
+  alert( xhr.status + ': ' + xhr.statusText ); // пример вывода: 404: Not Found
+
+}else{
+  
+  var html = '';
+  var data = JSON.parse(xhr.responseText);
+  console.log(data);
+
+  for (var key in data['result']) {
+    
+    html += '<tr>\
+            <th scope="row">'+ data['result'][key]['id'] +'</th>\
+            <td>'+ data['result'][key]['name'] +'</td>\
+            <td>'+ data['result'][key]['surname'] +'</td>\
+            <td>'+ data['result'][key]['status'] +'</td>';
+
+    
+  }
+
+}
+
+window.onload = function what(){
+  document.getElementById("table-body").innerHTML = html;
+};
+
+</script>
+</div>
