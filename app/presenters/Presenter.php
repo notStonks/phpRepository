@@ -11,7 +11,7 @@ class TestPresenter extends MainPresenter {
 
 	public static $isSecurity = false;
 
-	public function getListUsers(){ echo (new Users())->getListUsers(); }
+	public function getListUsers(){ echo (new Test())->getListUsers(); }
 
 	/* labels */
 	public function ruLableTable(){ $this->renderLabel('rus', 'labelLayoutTable'); }
