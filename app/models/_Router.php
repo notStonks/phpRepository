@@ -25,7 +25,7 @@ class _Router {
 
             if($this->route[1] == 'api'){
 
-                $path_presenter = ROOT . '/app/presenters/' . ucfirst($this->route[2]) . 'TestPresenter.php';
+                $path_presenter = ROOT . '/app/presenters/' . ucfirst($this->route[2]) . 'Presenter.php';
 
                 if ( file_exists($path_presenter) ){
                     
