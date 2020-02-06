@@ -1,10 +1,7 @@
 <?php
  
-class Users extends _MainModel{
-    function __construct()
-    {
-        parent::__construct();
-    }
+class Users {
+    
 
     public function getListUsers(){
         $result = _MainModel::table("users")->get()->send();
