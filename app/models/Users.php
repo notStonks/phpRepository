@@ -10,7 +10,8 @@ class Users {
          //(new Accounts())->getListAccounts();
     }
 
-    public function getUserInfo($id){
+    public function getUserInfo(){
+        $id = self::$params_url['id'];
         $result = _MainModel::table("users")->get()->filter(array("id"=> $id))->send();
         _MainModel::viewJSON($result);
     }
