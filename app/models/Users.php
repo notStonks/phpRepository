@@ -1,6 +1,6 @@
 <?php
  
-class Users extends _MainModel{
+class Users {
 
 
     public function getListUsers(){
@@ -11,7 +11,7 @@ class Users extends _MainModel{
     }
 
     public function getUserInfo(){
-        $id = self::$params_url['id'];
+        $id = _MainModel::$params_url['id'];
         $result = _MainModel::table("users")->get()->filter(array("id"=> $id))->send();
         _MainModel::viewJSON($result);
     }
