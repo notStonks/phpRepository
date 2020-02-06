@@ -1,7 +1,10 @@
 <?php
  
-class Users {
-
+class Users extends _MainModel{
+    function __construct()
+    {
+        parent::__construct();
+    }
 
     public function getListUsers(){
         $result = _MainModel::table("users")->get()->send();
@@ -14,7 +17,7 @@ class Users {
         /*$id = _MainModel::$params_url['id'];
         $result = _MainModel::table("users")->get()->filter(array("id"=> $id))->send();
         _MainModel::viewJSON($result);*/
-        foreach (_MainModel::$params_url as $parm){
+        foreach (self::$params_url as $parm){
         echo "</br> ".$parm;}
     }
 
