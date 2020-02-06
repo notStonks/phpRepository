@@ -1,7 +1,7 @@
 <?php
  
-class Users {
-    
+class Users extends MainModel{
+
 
     public function getListUsers(){
         $result = _MainModel::table("users")->get()->send();
