@@ -492,6 +492,7 @@ class _MainModel extends DB{
             foreach ($_POST as $k => $v) {
                 if(!empty($v)){
                     self::$params_url[$k] = trim(filter_input(INPUT_POST, $k), $allowed_char);
+
                 }
             }
 
@@ -500,7 +501,6 @@ class _MainModel extends DB{
         if(count($_GET)){
 
             foreach ($_GET as $k => $v) {
-
                 if(!empty($v)){
                     self::$params_url[$k] = trim(filter_input(INPUT_GET, $k), $allowed_char);
                 }
