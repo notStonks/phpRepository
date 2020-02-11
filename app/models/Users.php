@@ -9,6 +9,7 @@ class Users {
         $result = _MainModel::table($this->table)->get()->send();
         _MainModel::viewJSON($result);
 
+
     }
 
     public function getListCards(){
@@ -20,15 +21,16 @@ class Users {
     public function editUserCardStatus(){
         $card_id = _MainModel::$params_url['card_id'];
         $status = _MainModel::$params_url['status'];
-        $result = _MainModel::table($this->bank)->edit(array("status"=>$status), array("id"=> $card_id))->send();
+        _MainModel::table($this->bank)->edit(array("status"=>$status), array("id"=> $card_id))->send();
+        $result = _MainModel::table($this->bank)->get()->filter(array("id"=> $card_id))->send();
         _MainModel::viewJSON($result);
     }
 
     public function getUserInfo(){
-
         $id = _MainModel::$params_url['id'];
         $result = _MainModel::table($this->table)->get()->filter(array("id"=> $id))->send();
         _MainModel::viewJSON($result);
+
 
     }
     public function addUser(){
@@ -36,12 +38,16 @@ class Users {
         //$status = _MainModel::$params_url['status'];
         $status = "unblocked";
         $res = _MainModel::table($this->table)->add(array("nickname" => $nickname, "status" => $status))->send();
-        _MainModel::viewJSON($res);
+        //_MainModel::viewJSON($res);
+        $result = _MainModel::table($this->table)->get()->filter(array("id"=>$res))->send();
+        _MainModel::viewJSON($result);
     }
     public function deleteUser(){
         $id = _MainModel::$params_url['id'];
-        $result = _MainModel::table($this->table)->delete(array("id"=> $id))->send();
+        _MainModel::table($this->table)->delete(array("id"=> $id))->send();
+        $result = _MainModel::table($this->table)->get()->send();
         _MainModel::viewJSON($result);
+
     }
 
     public function editUser(){
@@ -49,6 +55,9 @@ class Users {
         $nickname = _MainModel::$params_url['nickname'];
         $status = _MainModel::$params_url['status'];
         _MainModel::table($this->table)->edit(array("nickname" => $nickname, "status" => $status), array("id" => $id))->send();
+        $result = _MainModel::table($this->table)->get()->filter(array("id"=> $id))->send();
+        _MainModel::viewJSON($result);
+
     }
 }
 
