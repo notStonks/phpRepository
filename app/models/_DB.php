@@ -13,7 +13,7 @@ class DB {
 
         try {
 
-            self::$db = new PDO('mysql:host=' . self::$config['database']['hostname'] . ';port=3307;dbname=' . self::$config['database']['dbname'],
+            self::$db = new PDO('mysql:host=' . self::$config['database']['hostname'] . ';dbname=' . self::$config['database']['dbname'],
                                 self::$config['database']['username'], 
                                 self::$config['database']['password']);
 
