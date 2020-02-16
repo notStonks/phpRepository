@@ -42,7 +42,7 @@ class Currencies extends _MainModel {
         $this->viewJSON($rows);
     }
 
-    public function getCurrency(){
+    public function getCurrencyInfo(){
         if (array_key_exists('id', self::$params_url) ){
             $id = self::$params_url['id'];
             if(is_numeric($id) == false) {

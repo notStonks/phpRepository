@@ -42,7 +42,7 @@ class Transactions extends _MainModel {
         $this->viewJSON($rows);
     }
 
-    public function getTransaction(){
+    public function getTransactionInfo(){
         if (array_key_exists('id', self::$params_url) ){
             $id = self::$params_url['id'];
             if(is_numeric($id) == false) {
