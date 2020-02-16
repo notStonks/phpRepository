@@ -4,7 +4,7 @@ class BankCards {
     private $table= "bank_cards";
 
 
-    public function getListCards(){
+    /*public function getListCards(){
         $id = _MainModel::$params_url['id'];
         $result = _MainModel::table($this->table)->get()->send();
         _MainModel::viewJSON($result);
@@ -36,7 +36,7 @@ class BankCards {
         $nickname = _MainModel::$params_url['nickname'];
         $status = _MainModel::$params_url['status'];
         _MainModel::table($this->table)->edit(array("nickname" => $nickname, "status" => $status), array("id" => $id))->send();
-    }
+    }*/
 }
 
 ?>

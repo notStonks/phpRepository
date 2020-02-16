@@ -47,7 +47,7 @@ class _AutoInclude {
         	}
 
         }
-        new _MainModel();
+        
     }
 
 

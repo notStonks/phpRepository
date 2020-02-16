@@ -16,6 +16,11 @@ define("ROOT", $_SERVER['DOCUMENT_ROOT']);
 define("URI", $_SERVER['REQUEST_URI']);
 
 require ROOT . '/app/models/_AutoInclude.php';
+require ROOT . '/app/models/_DB.php';
+require ROOT . '/app/models/_MainModel.php';
+require ROOT . '/app/models/_Render.php';
+require ROOT . '/app/models/_Router.php';
+require ROOT . '/app/presenters/MainPresenter.php';
 
 //подключение всех файлов
 $include = new _AutoInclude();
