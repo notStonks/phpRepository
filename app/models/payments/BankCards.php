@@ -46,7 +46,7 @@ class BankCards extends _MainModel {
             }
         }
 
-        $res = _MainModel::table($this->table)->add(array("id_user" => self::$params_url['id_user'], 'holder_name' => self::$params_url['holder_name'], 'end_date' => self::$params_url['end_date'],'status' => "available", 'user_name' => self::$params_url['user_name']))->send();
+        $res = _MainModel::table($this->table)->add(array("id_user" => self::$params_url['id_user'], 'card_number' => self::$params_url['card_number'],'holder_name' => self::$params_url['holder_name'], 'end_date' => self::$params_url['end_date'],'status' => "available", 'cvc' =>self::$params_url['cvc'], 'user_name' => self::$params_url['user_name']))->send();
         $result = _MainModel::table($this->table)->get()->filter(array("id"=>$res))->send();
         return $this->viewJSON($result);
     }
