@@ -9,53 +9,61 @@ class Currencies extends _MainModel {
      }*/
 
     public function getListCurrencies(){
-        $query = "Select * from $this->table ";
-        $resArr = array();
-        $params = array('filter', 'search');
-        $columns = array('status', 'name');
-        $k=0;
-        for($i=0;$i<count($params);$i++){
-            if(array_key_exists($params[$i], self::$params_url)){
-                if($k==0) {
-                    $query .= "Where ";
+        $params = array('filter', 'search', 'page', 'count');
+        $request = _MainModel::table($this->table)->get();
+
+        for($i = 0; $i < count($params); $i++) {
+            if (self::is_var($params[$i])) {
+                if ($params[$i] == 'filter')
+                    $request = $request->filter(array('status' => self::$params_url[$params[$i]]));
+
+                if ($params[$i] == 'search')
+                    $request = $request->search(array('name' => "%" . self::$params_url[$params[$i]] . "%"));
+            }
+            else {
+                if($i > 1){
+                    return $this->viewJSON(array('error' => "param $params[$i] do not found"));
                 }
-                if($k!=0){
-                    $query .= "AND ";
-                }
-                if($params[$i] == 'search'){
-                    $query .= "$columns[$i] like :$params[$i]";
-                    $resArr[$params[$i]] = "%" .self::$params_url[$params[$i]]. "%" ;
-                }
-                else{
-                    $query .= "$columns[$i] = :$params[$i] ";
-                    $resArr[$params[$i]] = self::$params_url[$params[$i]];
-                }
-                $k++;
             }
         }
-        if(!($stmt = self::$db->prepare($query))){
-            $this->viewJSON(array('error' => array("text" => "failed to prepare the query", "code" => 6)));
-        }
-        if(!($result_query = $stmt->execute($resArr))){
-            $this->viewJSON(array('error' => array("text" => "failed to execute the query", "code" => 7)));}
-        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        $this->viewJSON($rows);
+
+        $result = $request->pagination(intval(self::$params_url['page']),intval(self::$params_url['count']))->send();
+        return $this->viewJSON($result);
     }
 
     public function getCurrencyInfo(){
-        if (array_key_exists('id', self::$params_url) ){
-            $id = self::$params_url['id'];
-            if(is_numeric($id) == false) {
-                $this->viewJSON(array('error' => array("text" => "invalid type of arg (must be int)", "code" => 4)));
-                return;
-            }
+        if(self::is_var('id')){
+            $result = _MainModel::table($this->table)->get()->filter(array("id" => self::$params_url['id']))->send();
+            return $this->viewJSON($result);
         }
         else {
-            $this->viewJSON(array('error' => array("text" => "key 'id' does not found", "code" => 2)));
-            return;
+            return $this->viewJSON(array('error' => "param 'id' do not found"));
         }
-        $result = _MainModel::table($this->table)->get()->filter(array("id" => $id))->send();
-        $this->viewJSON($result);
+    }
+
+    public function addCurrency(){
+        if(self::is_var('name')) {
+            $res = _MainModel::table($this->table)->add(array("name" => self::$params_url['name'], "status" => "available"))->send();
+            $result = _MainModel::table($this->table)->get()->filter(array("id"=>$res))->send();
+            return $this->viewJSON($result);
+        }
+        else{
+            return $this->viewJSON(array('error' => "param 'nickname' do not found"));
+        }
+    }
+
+    public function editCurrencyStatus(){
+        $params = array('id', 'status');
+
+        foreach ($params as $param){
+            if(!self::is_var($param)){
+                return $this->viewJSON(array('error' => "param $param do not found"));
+            }
+        }
+
+        _MainModel::table($this->table)->edit(array("status"=>self::$params_url['status']), array("id"=> self::$params_url['id']))->send();
+        $result = _MainModel::table($this->table)->get()->filter(array("id"=> self::$params_url['id']))->send();
+        return $this->viewJSON($result);
     }
 }
 ?>

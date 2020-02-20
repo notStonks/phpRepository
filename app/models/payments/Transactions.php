@@ -1,4 +1,5 @@
 <?php
+
 class Transactions extends _MainModel {
     private $table= "transactions";
     private $acc = "accounts";
@@ -9,125 +10,92 @@ class Transactions extends _MainModel {
      }*/
 
     public function getListTransactions(){
-        $query = "Select * from $this->table ";
-        $resArr = array();
-        $params = array('filter', 'search');
-        $columns = array('status', 'id_sender_account','id_recipient_account', 'transaction_time', 'amount_of_money');
-        $k=0;
-        for($i=0;$i<count($params);$i++){
-            if(array_key_exists($params[$i], self::$params_url)){
-                if($k==0) {
-                    $query .= "Where ";
+        $params = array('filter', 'search', 'page', 'count');
+        $request = _MainModel::table($this->table)->get();
+
+        for($i = 0; $i < count($params); $i++) {
+            if (self::is_var($params[$i])) {
+                if ($params[$i] == 'filter') {
+                    $request = $request->filter(array('status' => self::$params_url[$params[$i]]));
                 }
-                if($k!=0){
-                    $query .= "AND ";
+                if ($params[$i] == 'search') {
+                    $request = $request->search(array('id_sender_account' => "%" . self::$params_url[$params[$i]] . "%", 'id_recipient_account' => "%" . self::$params_url[$params[$i]] . "%"));
                 }
-                if($params[$i] == 'search'){
-                    $query .= "($columns[$i] like :$params[$i] OR ".$columns[$i+1]." like :$params[$i] OR ".$columns[$i+2]." like :$params[$i] OR ".$columns[$i+3]." like :$params[$i]) ";
-                    $resArr[$params[$i]] = "%" .self::$params_url[$params[$i]]. "%" ;
-                }
-                else{
-                    $query .= "$columns[$i] = :$params[$i] ";
-                    $resArr[$params[$i]] = self::$params_url[$params[$i]];
-                }
-                $k++;
+            }
+            else {
+                if($i > 1)
+                    return $this->viewJSON(array('error' => "param $params[$i] do not found"));
             }
         }
-        if(!($stmt = self::$db->prepare($query))){
-            $this->viewJSON(array('error' => array("text" => "failed to prepare the query", "code" => 6)));
-        }
-        if(!($result_query = $stmt->execute($resArr))){
-            $this->viewJSON(array('error' => array("text" => "failed to execute the query", "code" => 7)));}
-        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        $this->viewJSON($rows);
+
+        $result = $request->pagination(intval(self::$params_url['page']),intval(self::$params_url['count']))->send();
+        return $this->viewJSON($result);
     }
 
     public function getTransactionInfo(){
-        if (array_key_exists('id', self::$params_url) ){
-            $id = self::$params_url['id'];
-            if(is_numeric($id) == false) {
-                $this->viewJSON(array('error' => array("text" => "invalid type of arg (must be int)", "code" => 4)));
-                return;
-            }
+        if (self::is_var('id')) {
+            $result = _MainModel::table($this->table)->get()->filter(array("id" => self::$params_url['id']))->send();
+            return $this->viewJSON($result);
         }
         else {
-            $this->viewJSON(array('error' => array("text" => "key 'id' does not found", "code" => 2)));
-            return;
+            return $this->viewJSON(array('error' => "key 'id' does not found"));
         }
-        $result = _MainModel::table($this->table)->get()->filter(array("id" => $id))->send();
-        $this->viewJSON($result);
     }
 
     public function createTransaction(){
         $params = array('id_sender', 'id_recipient', 'money');
-        foreach ($params as $param)
-        {
-            if(array_key_exists($param,self::$params_url)){
-                if(is_numeric(self::$params_url[$param]) == false) {
-                    $this->viewJSON(array('error' => array("text" => "invalid type of arg (must be numeric)", "code" => 4)));
-                    return;
-                }
-            }
-            else{
-                $this->viewJSON(array('error' => array("text" => "key $param do not found", "code" => 2)));
-                return;
+        foreach ($params as $param) {
+            if(!self::is_var($param)){
+                return $this->viewJSON(array('error' => "key $param do not found"));
             }
         }
-        $status = "unchecked";
-        /*$query = "Select currency_rate from currency_rates where id_currency_1 = (select id_currency from accounts where id = :sender) and id_currency_2 = (select id_currency from accounts where id = :recipient)";
-        $stmt = self::$db->prepare($query);
-        $result_query = $stmt->execute(array('sender'=>self::$params_url[$params[0]], 'recipient'=>self::$params_url[$params[1]]));
-        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        $currencyRate = $rows[0]['currency_rate'];*/
 
-        $query= "INSERT INTO `transactions`(`id_sender_account`, `id_recipient_account`, `status`, `transaction_time`, `amount_of_money`, `currency_rate`) VALUES (:sender, :recipient, :status, :time, :money, (Select currency_rate from currency_rates where id_currency_1 = (select id_currency from accounts where id = :sender) and id_currency_2 = (select id_currency from accounts where id = :recipient)))";
+        $query= "INSERT INTO `transactions`(`id_sender_account`, `id_recipient_account`, `status`, `transaction_time`, `amount_of_money`, `currency_rate`) 
+                 VALUES (:sender, :recipient, :status, :time, :money, 
+                 (Select currency_rate from currency_rates where id_currency_1 = (select id_currency from accounts where id = :sender) and 
+                 id_currency_2 = (select id_currency from accounts where id = :recipient)))";
         if(!($stmt = self::$db->prepare($query))){
-            $this->viewJSON(array('error' => array("text" => "failed to prepare the query", "code" => 6)));
+            return $this->viewJSON(array('error' => "failed to prepare the query"));
         }
-        if(!($result_query = $stmt->execute(array('sender'=>self::$params_url[$params[0]], 'recipient'=>self::$params_url[$params[1]], 'status' => $status, 'time' => date("Y-m-d H:i:s"), 'money'=>self::$params_url[$params[2]]) ))){
-            $this->viewJSON(array('error' => array("text" => "failed to execute the query", "code" => 7)));
+        if(!($result_query = $stmt->execute(array('sender'=>self::$params_url[$params[0]], 'recipient'=>self::$params_url[$params[1]], 'status' => "unconfirmed", 'time' => date("Y-m-d H:i:s"), 'money'=>self::$params_url[$params[2]]) ))){
+            return $this->viewJSON(array('error' => "failed to execute the query"));
         }
         $res = self::$db->lastInsertId();
-        $this->viewJSON($res);
+        return $this->viewJSON($res);
     }
 
     public function confirmTransaction(){
-        if(array_key_exists('id',self::$params_url)){
-            if(is_numeric(self::$params_url['id']) == false) {
-                $this->viewJSON(array('error' => array("text" => "invalid type of arg (must be numeric)", "code" => 4)));
-                return;
-            }
-        }
-        else{
-            $this->viewJSON(array('error' => array("text" => "key id do not found", "code" => 2)));
-            return;
-        }
-        $res = _MainModel::table($this->table)->get(array("status"))->filter(array("id"=>self::$params_url['id']))->send();
-        $status = $res[0]['status'];
-        if($status == "checked"){
-            $this->viewJSON(array('error' => array("text" => "This transaction already confirmed", "code" => 5)));
-            return;
+        if(!self::is_var('id')){
+            return $this->viewJSON(array('error' => "key id do not found"));
         }
 
-        $query ="Update $this->acc set amount_of_money = amount_of_money + ((select amount_of_money from $this->table where id = :id)*(select currency_rate from $this->table where id = :id)) where id = (select id_recipient_account from $this->table where id = :id);";
-        if(!($stmt = self::$db->prepare($query))){
-            $this->viewJSON(array('error' => array("text" => "failed to prepare the query", "code" => 6)));
+        $res = _MainModel::table($this->table)->get(array("status"))->filter(array("id"=>self::$params_url['id']))->send();
+        $status = $res[0]['status'];
+        if($status == "confirmed"){
+            return $this->viewJSON(array('error' => "This transaction already confirmed"));
         }
-       if(!($stmt->execute(array('id'=>self::$params_url['id'])))){
-           $this->viewJSON(array('error' => array("text" => "failed to execute the query", "code" => 7)));
-       }
-        _MainModel::table($this->table)->edit(array('status' => "checked"), array("id" => self::$params_url['id']))->send();
+
+        $query ="Update $this->acc set amount_of_money = amount_of_money + 
+                    ((select amount_of_money from $this->table where id = :id)*(select currency_rate from $this->table where id = :id))
+                    where id = (select id_recipient_account from $this->table where id = :id);";
+        if(!($stmt = self::$db->prepare($query))){
+            return $this->viewJSON(array('error' => "failed to prepare the query"));
+        }
+        if(!($stmt->execute(array('id'=>self::$params_url['id'])))){
+           return $this->viewJSON(array('error' => "failed to execute the query"));
+        }
+        _MainModel::table($this->table)->edit(array('status' => "confirmed"), array("id" => self::$params_url['id']))->send();
 
 
         $query = "Select * FROM $this->acc where id = (SELECT id_recipient_account from $this->table where id = :id)";
         if(!($stmt = self::$db->prepare($query))){
-            $this->viewJSON(array('error' => array("text" => "failed to prepare the query", "code" => 6)));
+            return $this->viewJSON(array('error' => "failed to prepare the query"));
         }
         if(!($stmt->execute(array('id'=>self::$params_url['id'])))){
-            $this->viewJSON(array('error' => array("text" => "failed to execute the query", "code" => 7)));
+            return $this->viewJSON(array('error' => "failed to execute the query"));
         }
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        $this->viewJSON($rows);
+        return $this->viewJSON($rows);
     }
 }
 ?>

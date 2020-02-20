@@ -6,9 +6,8 @@ class CurrenciesPresenter extends MainPresenter {
 
     public function getListCurrencies(){ echo (new Currencies())->getListCurrencies(); }
     public function getCurrencyInfo(){echo(new Currencies())->getCurrencyInfo();}
-    
-
-
+    public function addCurrency(){echo(new Currencies())->addCurrency();}
+    public function editCurrencyStatus(){echo(new Currencies())->editCurrencyStatus();}
 
 }
 

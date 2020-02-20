@@ -1,8 +1,9 @@
 <?php
- //require_once "_MainModel.php";
+
 class Users extends _MainModel {
     private $table= "users";
     private $bank = "bank_cards";
+    private $acc = "accounts";
 
    /* public function __construct()
     {
@@ -10,117 +11,107 @@ class Users extends _MainModel {
     }*/
 
     public function getListUsers(){
-        $result = _MainModel::table($this->table)->get()->send();
-        $this->viewJSON($result);
+        $params = array('page', 'count');
+        //$pagArr = array( 'page' => 0, 'count' => 6);
+        foreach ($params as $param) {
+            if (!self::is_var($param))
+                return $this->viewJSON(array('error' => "param $param do not found"));
+        }
+
+        $result = _MainModel::table($this->table)->get()->pagination(intval(self::$params_url['page']),intval(self::$params_url['count']))->send();
+        return $this->viewJSON($result);
     }
 
     public function getListCards(){
-       if (array_key_exists('id', _MainModel::$params_url) ){
-             $id = self::$params_url['id'];
-            if(is_numeric($id) == false) {
-                _MainModel::viewJSON(array('error' => array("text" => "invalid type of arg (must be int)", "code" => 4)));
-                return;
+        $params = array('id', 'page', 'count');
+
+        foreach($params as $param) {
+            if (!self::is_var($param)) {
+                return $this->viewJSON(array('error' => "param $param do not found "));
             }
-       }
-       else {
-           _MainModel::viewJSON(array('error' => array("text" => "key 'id' does not found", "code" => 2)));
-           return;
-       }
-            $result = _MainModel::table($this->bank)->get()->filter(array("id_user" => $id))->send();
-            $this->viewJSON($result);
+        }
+        $result = _MainModel::table($this->bank)->get()->filter(array("id_user" => self::$params_url['id']))->pagination(intval(self::$params_url['page']),intval(self::$params_url['count']))->send();
+        return $this->viewJSON($result);
+    }
+
+    public function getListAccounts(){
+        $params = array('id', 'page', 'count');
+
+        foreach($params as $param) {
+            if (!self::is_var($param)) {
+                return $this->viewJSON(array('error' => "param $param do not found "));
+            }
+        }
+        $result = _MainModel::table($this->acc)->get()->filter(array("id_user" => self::$params_url['id']))->pagination(intval(self::$params_url['page']),intval(self::$params_url['count']))->send();
+        return $this->viewJSON($result);
     }
 
     public function editUserCardStatus(){
         $params = array('card_id', 'status');
         foreach ($params as $param){
-            if(array_key_exists($param,self::$params_url)){
-                if(is_numeric(self::$params_url['card_id']) == false) {
-                    $this->viewJSON(array('error' => array("text" => "invalid type of arg (card_id must be int)", "code" => 4)));
-                    return;
-                }
-            }
-            else{
-                $this->viewJSON(array('error' => array("text" => "key $param do not found", "code" => 2)));
-                return;
+            if(!self::is_var($param)){
+                return $this->viewJSON(array('error' => "key $param do not found"));
             }
         }
-        $card_id = self::$params_url['card_id'];
-        $status = self::$params_url['status'];
-        if(is_numeric($card_id) == false) {
-            $this->viewJSON(array('error' => array("text" => "invalid type of arg (card_id must be int)", "code" => 4)));
-            return;
-        }
+        _MainModel::table($this->bank)->edit(array("status"=>self::$params_url['status']), array("id"=> self::$params_url['card_id']))->send();
+        $result = _MainModel::table($this->bank)->get()->filter(array("id"=> self::$params_url['card_id']))->send();
+        return $this->viewJSON($result);
+    }
 
-        _MainModel::table($this->bank)->edit(array("status"=>$status), array("id"=> $card_id))->send();
-        $result = _MainModel::table($this->bank)->get()->filter(array("id"=> $card_id))->send();
-        $this->viewJSON($result);
+    public function editUserCardName(){
+        $params = array('card_id', 'user_name');
+        foreach ($params as $param){
+            if(!self::is_var($param)){
+                return $this->viewJSON(array('error' => "key $param do not found"));
+            }
+        }
+        _MainModel::table($this->bank)->edit(array("user_name"=>self::$params_url['user_name']), array("id"=> self::$params_url['card_id']))->send();
+        $result = _MainModel::table($this->bank)->get()->filter(array("id"=> self::$params_url['card_id']))->send();
+        return $this->viewJSON($result);
     }
 
     public function getUserInfo(){
-        if(array_key_exists('id',self::$params_url)){
-            $id = self::$params_url['id'];
-        if(is_numeric($id) == false) {
-            $this->viewJSON(array('error' => array("text" => "invalid type of arg (id must be int)", "code" => 4)));
-            return;
-            }
+        if(self::is_var('id')){
+            $result = _MainModel::table($this->table)->get()->filter(array("id"=> self::$params_url['id']))->send();
+            return $this->viewJSON($result);
         }
         else{
-            $this->viewJSON(array('error' => array("text" => "key 'id' does not found", "code" => 2)));
-            return;
+            return $this->viewJSON(array('error' => "key 'id' does not found"));
         }
-        $result = _MainModel::table($this->table)->get()->filter(array("id"=> $id))->send();
-        $this->viewJSON($result);
     }
+
     public function addUser(){
-
-        if(array_key_exists('nickname',self::$params_url))
-            $nickname = self::$params_url['nickname'];
-        else{
-            $this->viewJSON(array('error' => array("text" => "key 'nickname' does not found", "code" => 2)));
-            return;
+        if(self::is_var('nickname')) {
+            $res = _MainModel::table($this->table)->add(array("nickname" => self::$params_url['nickname'], "status" => "unblocked"))->send();
+            $result = _MainModel::table($this->table)->get()->filter(array("id"=>$res))->send();
+            return $this->viewJSON($result);
         }
-        $status = "unblocked";
-        $res = _MainModel::table($this->table)->add(array("nickname" => $nickname, "status" => $status))->send();
-
-        $result = _MainModel::table($this->table)->get()->filter(array("id"=>$res))->send();
-        $this->viewJSON($result);
+        else{
+            return $this->viewJSON(array('error' => "key 'nickname' does not found"));
+        }
     }
+
     public function deleteUser(){
-        if(array_key_exists('id',self::$params_url)) {
-            $id = self::$params_url['id'];
-            if(is_numeric($id) == false) {
-                $this->viewJSON(array('error' => array("text" => "invalid type of arg (id must be int)", "code" => 4)));
-                return;
-            }
+        if(self::is_var('id')) {
+            _MainModel::table($this->table)->delete(array("id"=> self::$params_url['id']))->send();
+            $result = _MainModel::table($this->table)->get()->send();
+            return $this->viewJSON($result);
         }
         else{
-            $this->viewJSON(array('error' => array("text" => "key 'id' does not found", "code" => 2)));
-            return;
+            return $this->viewJSON(array('error' => "key 'id' does not found"));
         }
-        _MainModel::table($this->table)->delete(array("id"=> $id))->send();
-        $result = _MainModel::table($this->table)->get()->send();
-        $this->viewJSON($result);
     }
 
     public function editUser(){
         $params = array('id', 'nickname', 'status');
-        foreach ($params as $param)
-        {
-            if(!array_key_exists($param,self::$params_url)){
-                self::viewJSON(array('error' => array("text" => "key $param do not found", "code" => 2)));
-                return;
+        foreach ($params as $param) {
+            if(!self::is_var(self::$params_url[$param])){
+                return $this->viewJSON(array('error' => "param $param do not found"));
             }
         }
-        $id = self::$params_url['id'];
-        if(is_numeric($id) == false) {
-            _MainModel::viewJSON(array('error' => array("text" => "invalid type of arg (id must be int)", "code" => 4)));
-            return;
-        }
-        $nickname = self::$params_url['nickname'];
-        $status = self::$params_url['status'];
-        _MainModel::table($this->table)->edit(array("nickname" => $nickname, "status" => $status), array("id" => $id))->send();
-        $result = _MainModel::table($this->table)->get()->filter(array("id"=> $id))->send();
-        $this->viewJSON($result);
+        _MainModel::table($this->table)->edit(array("nickname" => self::$params_url['nickname'], "status" => self::$params_url['status']), array("id" => self::$params_url['id']))->send();
+        $result = _MainModel::table($this->table)->get()->filter(array("id"=> self::$params_url['id']))->send();
+        return $this->viewJSON($result);
     }
 }
 

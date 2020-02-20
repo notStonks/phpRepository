@@ -10,7 +10,9 @@ class UsersPresenter extends MainPresenter {
 	public function deleteUser(){echo (new Users())->deleteUser();}
 	public function editUser(){echo (new Users())->editUser();}
 	public function getListCards(){echo (new Users())->getListCards();}
+	public function getListAccounts(){echo (new Users())->getListAccounts();}
 	public function editUserCardStatus(){echo (new Users())->editUserCardStatus();}
+	public function editUserCardName(){echo (new Users())->editUserCardName();}
 
 
 
