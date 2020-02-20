@@ -5,16 +5,26 @@ class BankCards extends _MainModel {
 
 
     public function getListCards(){
-        $params = array('page', 'count');
+        $params = array('filter', 'search', 'page', 'count');
+        $request = _MainModel::table($this->table)->get();
 
-        foreach($params as $param) {
-            if (!self::is_var($param)) {
-                return $this->viewJSON(array('error' => "param $param do not found"));
+        for($i = 0; $i < count($params); $i++) {
+            if (self::is_var($params[$i])) {
+                if ($params[$i] == 'filter')
+                    $request = $request->filter(array('status' => self::$params_url[$params[$i]]));
+
+                if ($params[$i] == 'search')
+                    $request = $request->search(array('id_user' =>  self::$params_url[$params[$i]] ));
+            }
+            else {
+                if($i > 1){
+                    return $this->viewJSON(array('error' => "param $params[$i] do not found"));
+                }
             }
         }
 
-        $result = _MainModel::table($this->table)->get()->pagination(intval(self::$params_url['page']),intval(self::$params_url['count']))->send();
-        $this->viewJSON($result);
+        $result = $request->pagination(intval(self::$params_url['page']),intval(self::$params_url['count']))->send();
+        return $this->viewJSON($result);
     }
 
     public function getCardInfo(){
