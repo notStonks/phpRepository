@@ -28,6 +28,8 @@ class _MainModel extends DB{
 
     private static $number_page = null;
 
+    private static $offset = null;
+
     //add
     private static $array_field_add = array();
 
