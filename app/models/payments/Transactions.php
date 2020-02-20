@@ -19,7 +19,7 @@ class Transactions extends _MainModel {
                     $request = $request->filter(array('status' => self::$params_url[$params[$i]]));
                 }
                 if ($params[$i] == 'search') {
-                    $request = $request->search(array('id_sender_account' => "%" . self::$params_url[$params[$i]] . "%", 'id_recipient_account' => "%" . self::$params_url[$params[$i]] . "%"));
+                    $request = $request->search(array('id_sender_account' => "%" . self::$params_url[$params[$i]] . "%"));
                 }
             }
             else {
