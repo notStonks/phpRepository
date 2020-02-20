@@ -1,6 +1,6 @@
 <?php
 
-class BankCardPresenter extends MainPresenter {
+class BankCardsPresenter extends MainPresenter {
 
     public static $isSecurity = false;
 
