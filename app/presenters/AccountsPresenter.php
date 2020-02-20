@@ -1,7 +1,7 @@
 <?php
 
 
-class AccountsPresentes extends MainPresenter
+class AccountsPresenter extends MainPresenter
 {
     public function getListAccounts() { echo (new Accounts())->getListAccounts(); }
     public function getAccountInfo() { echo (new Accounts())->getAccountInfo(); }
