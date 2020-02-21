@@ -236,7 +236,7 @@ class _MainModel extends DB{
     public static function pagination($number_page = null, $count_element = null) {
 
         if (isset($number_page) && isset($count_element) && is_int($number_page) && is_int($count_element)) {
-
+			$number_page--;
             self::$number_page = $number_page;
             self::$count_element = $count_element;
             self::$offset = $count_element * $number_page;
