@@ -65,6 +65,17 @@ class BankCards extends _MainModel {
         return $this->viewJSON($result);
     }
 
+    private function requireParams($arr) {
+        if (!is_array($arr))
+            throw new InvalidArgumentException('array required');
+        $keys = array_keys(self::$params_url);
+        $diff = array_diff($arr, $keys);
+        if (!empty($diff)) {
+            self::viewJSON(array('error' => implode(', ', $diff) . ' required'));
+            die();
+        }
+    }
+
     private function checkedInt($key, $default = 0, $arr = null) {
         if (is_null($arr))
             $arr = self::$params_url;
