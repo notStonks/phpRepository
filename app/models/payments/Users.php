@@ -11,80 +11,65 @@ class Users extends _MainModel {
     }*/
 
     public function getListUsers(){
-        $params = array('page', 'count');
-        //$pagArr = array( 'page' => 0, 'count' => 6);
-        foreach ($params as $param) {
-            if (!self::is_var($param))
-                return $this->viewJSON(array('error' => "param $param do not found"));
-        }
+        $request = _MainModel::table($this->table)->get();
 
-        $result = _MainModel::table($this->table)->get()->pagination(intval(self::$params_url['page']),intval(self::$params_url['count']))->send();
-        return $this->viewJSON($result);
+        if (self::is_var('filter'))
+            $request->filter(array('status' => self::$params_url['filter']));
+        if(self::is_var('search'))
+            $request->search(array('nickname' => "%" . self::$params_url['search'] . "%"));
+
+        $page = $this->checkedInt('page', 1);
+        $count = $this->checkedInt('count', 10);
+
+        $result = $request->pagination($page,$count)->send();
+        $this->viewJSON($result);
     }
 
-    public function getListCards(){
-        $params = array('id', 'page', 'count');
 
-        foreach($params as $param) {
-            if (!self::is_var($param)) {
-                return $this->viewJSON(array('error' => "param $param do not found "));
-            }
-        }
-        $result = _MainModel::table($this->bank)->get()->filter(array("id_user" => self::$params_url['id']))->pagination(intval(self::$params_url['page']),intval(self::$params_url['count']))->send();
-        return $this->viewJSON($result);
+    public function getListCards(){
+        $this->requireParams(['id']);
+        $page = $this->checkedInt('page', 1);
+        $count = $this->checkedInt('count', 10);
+        $result = _MainModel::table($this->bank)->get()->filter(array("id_user" => self::$params_url['id']))->pagination($page,$count)->send();
+        $this->viewJSON($result);
     }
 
     public function getListAccounts(){
-        $params = array('id', 'page', 'count');
-
-        foreach($params as $param) {
-            if (!self::is_var($param)) {
-                return $this->viewJSON(array('error' => "param $param do not found "));
-            }
-        }
-        $result = _MainModel::table($this->acc)->get()->filter(array("id_user" => self::$params_url['id']))->pagination(intval(self::$params_url['page']),intval(self::$params_url['count']))->send();
-        return $this->viewJSON($result);
+        $this->requireParams(['id']);
+        $page = $this->checkedInt('page', 1);
+        $count = $this->checkedInt('count', 10);
+        $result = _MainModel::table($this->acc)->get()->filter(array("id_user" => self::$params_url['id']))->pagination($page,$count)->send();
+        $this->viewJSON($result);
     }
 
     public function editUserCardStatus(){
-        $params = array('card_id', 'status');
-        foreach ($params as $param){
-            if(!self::is_var($param)){
-                return $this->viewJSON(array('error' => "key $param do not found"));
-            }
-        }
+        $this->requireParams(['card_id', 'status']);
         _MainModel::table($this->bank)->edit(array("status"=>self::$params_url['status']), array("id"=> self::$params_url['card_id']))->send();
         $result = _MainModel::table($this->bank)->get()->filter(array("id"=> self::$params_url['card_id']))->send();
-        return $this->viewJSON($result);
+        $this->viewJSON($result);
     }
 
     public function editUserCardName(){
-        $params = array('card_id', 'user_name');
-        foreach ($params as $param){
-            if(!self::is_var($param)){
-                return $this->viewJSON(array('error' => "key $param do not found"));
-            }
-        }
+        $this->requireParams(['card_id', 'user_name']);
         _MainModel::table($this->bank)->edit(array("user_name"=>self::$params_url['user_name']), array("id"=> self::$params_url['card_id']))->send();
         $result = _MainModel::table($this->bank)->get()->filter(array("id"=> self::$params_url['card_id']))->send();
-        return $this->viewJSON($result);
+        $this->viewJSON($result);
     }
 
     public function getUserInfo(){
         if(self::is_var('id')){
             $result = _MainModel::table($this->table)->get()->filter(array("id"=> self::$params_url['id']))->send();
-            return $this->viewJSON($result);
+            $this->viewJSON($result);
         }
         else{
-            return $this->viewJSON(array('error' => "key 'id' does not found"));
+            $this->viewJSON(array('error' => "key 'id' does not found"));
         }
     }
 
     public function addUser(){
         if(self::is_var('nickname')) {
             $res = _MainModel::table($this->table)->add(array("nickname" => self::$params_url['nickname'], "status" => "unblocked"))->send();
-            $result = _MainModel::table($this->table)->get()->filter(array("id"=>$res))->send();
-            return $this->viewJSON($result);
+            return $this->viewJSON($res);
         }
         else{
             return $this->viewJSON(array('error' => "key 'nickname' does not found"));
@@ -113,6 +98,32 @@ class Users extends _MainModel {
         $result = _MainModel::table($this->table)->get()->filter(array("id"=> self::$params_url['id']))->send();
         return $this->viewJSON($result);
     }
+
+    private function requireParams($arr) {
+        if (!is_array($arr))
+            throw new InvalidArgumentException('array required');
+        $keys = array_keys(self::$params_url);
+        $diff = array_diff($arr, $keys);
+        if (!empty($diff)) {
+            self::viewJSON(array('error' => implode(', ', $diff) . ' required'));
+            die();
+        }
+    }
+
+    private function checkedInt($key, $default = 0, $arr = null) {
+        if (is_null($arr))
+            $arr = self::$params_url;
+        if (isset($arr[$key])) {
+            $val = $arr[$key];
+            if (filter_var($val, FILTER_VALIDATE_INT) === false) {
+                self::viewJSON(['error' => "invalid $key parameter type; must be int"]);
+                die();
+            }
+            return intval($val);
+        }
+        return $default;
+    }
+
 }
 
 ?>

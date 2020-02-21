@@ -5,26 +5,18 @@ class BankCards extends _MainModel {
 
 
     public function getListCards(){
-        $params = array('filter', 'search', 'page', 'count');
         $request = _MainModel::table($this->table)->get();
 
-        for($i = 0; $i < count($params); $i++) {
-            if (self::is_var($params[$i])) {
-                if ($params[$i] == 'filter')
-                    $request = $request->filter(array('status' => self::$params_url[$params[$i]]));
+        if (self::is_var('filter'))
+            $request->filter(array('status' => self::$params_url['filter']));
+        if(self::is_var('search'))
+            $request->search(array('id_user' => "%" . self::$params_url['search'] . "%"));
 
-                if ($params[$i] == 'search')
-                    $request = $request->search(array('id_user' =>  self::$params_url[$params[$i]] ));
-            }
-            else {
-                if($i > 1){
-                    return $this->viewJSON(array('error' => "param $params[$i] do not found"));
-                }
-            }
-        }
+        $page = $this->checkedInt('page', 1);
+        $count = $this->checkedInt('count', 10);
 
-        $result = $request->pagination(intval(self::$params_url['page']),intval(self::$params_url['count']))->send();
-        return $this->viewJSON($result);
+        $result = $request->pagination($page,$count)->send();
+        $this->viewJSON($result);
     }
 
     public function getCardInfo(){
@@ -47,8 +39,7 @@ class BankCards extends _MainModel {
         }
 
         $res = _MainModel::table($this->table)->add(array("id_user" => self::$params_url['id_user'], 'card_number' => self::$params_url['card_number'],'holder_name' => self::$params_url['holder_name'], 'end_date' => self::$params_url['end_date'],'status' => "available", 'cvc' =>self::$params_url['cvc'], 'user_name' => self::$params_url['user_name']))->send();
-        $result = _MainModel::table($this->table)->get()->filter(array("id"=>$res))->send();
-        return $this->viewJSON($result);
+        return $this->viewJSON($res);
     }
 
     public function deleteCard(){
@@ -72,6 +63,20 @@ class BankCards extends _MainModel {
         _MainModel::table($this->table)->edit(array("status"=>self::$params_url['status']), array("id"=> self::$params_url['id']))->send();
         $result = _MainModel::table($this->table)->get()->filter(array("id"=> self::$params_url['id']))->send();
         return $this->viewJSON($result);
+    }
+
+    private function checkedInt($key, $default = 0, $arr = null) {
+        if (is_null($arr))
+            $arr = self::$params_url;
+        if (isset($arr[$key])) {
+            $val = $arr[$key];
+            if (filter_var($val, FILTER_VALIDATE_INT) === false) {
+                self::viewJSON(['error' => "invalid $key parameter type; must be int"]);
+                die();
+            }
+            return intval($val);
+        }
+        return $default;
     }
 }
 

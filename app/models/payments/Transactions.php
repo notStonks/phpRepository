@@ -10,26 +10,18 @@ class Transactions extends _MainModel {
      }*/
 
     public function getListTransactions(){
-        $params = array('filter', 'search', 'page', 'count');
         $request = _MainModel::table($this->table)->get();
 
-        for($i = 0; $i < count($params); $i++) {
-            if (self::is_var($params[$i])) {
-                if ($params[$i] == 'filter') {
-                    $request = $request->filter(array('status' => self::$params_url[$params[$i]]));
-                }
-                if ($params[$i] == 'search') {
-                    $request = $request->search(array('id_sender_account' => "%" . self::$params_url[$params[$i]] . "%"));
-                }
-            }
-            else {
-                if($i > 1)
-                    return $this->viewJSON(array('error' => "param $params[$i] do not found"));
-            }
-        }
+        if (self::is_var('filter'))
+            $request->filter(array('status' => self::$params_url['filter']));
+        if(self::is_var('search'))
+            $request->search(array('id_sender_account' => "%" . self::$params_url['search'] . "%"));
 
-        $result = $request->pagination(intval(self::$params_url['page']),intval(self::$params_url['count']))->send();
-        return $this->viewJSON($result);
+        $page = $this->checkedInt('page', 1);
+        $count = $this->checkedInt('count', 10);
+
+        $result = $request->pagination($page,$count)->send();
+        $this->viewJSON($result);
     }
 
     public function getTransactionInfo(){

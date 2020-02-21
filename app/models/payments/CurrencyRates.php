@@ -11,26 +11,18 @@ class CurrencyRates extends _MainModel
      }*/
 
     public function getListCurrencyRates(){
-        $params = array('filter', 'search', 'page', 'count');
         $request = _MainModel::table($this->table)->get();
 
-        for($i = 0; $i < count($params); $i++) {
-            if (self::is_var($params[$i])) {
-                if ($params[$i] == 'filter')
-                    $request = $request->filter(array('status' => self::$params_url[$params[$i]]));
+        if (self::is_var('filter'))
+            $request->filter(array('status' => self::$params_url['filter']));
+        if(self::is_var('search'))
+            $request->search(array('id_currency1' => "%" . self::$params_url['search'] . "%"));
 
-                if ($params[$i] == 'search')
-                    $request = $request->search(array('id_currency1' =>  self::$params_url[$params[$i]] ));
-            }
-            else {
-                if($i > 1){
-                    return $this->viewJSON(array('error' => "param $params[$i] do not found"));
-                }
-            }
-        }
+        $page = $this->checkedInt('page', 1);
+        $count = $this->checkedInt('count', 10);
 
-        $result = $request->pagination(intval(self::$params_url['page']),intval(self::$params_url['count']))->send();
-        return $this->viewJSON($result);
+        $result = $request->pagination($page,$count)->send();
+        $this->viewJSON($result);
     }
 
     public function getCurrencyRateInfo(){
@@ -50,9 +42,8 @@ class CurrencyRates extends _MainModel
             return $this->viewJSON(array('error' => "key 'nickname' does not found"));
         }
 
-        $res = _MainModel::table($this->table)->add(array("id_currency1" => self::$params_url['id_currency1'], "id_currency2" => self::$params_url['id_currency2'], "currency_rate" =>self::$params_url['currency_rate'], "date_time"=>date("Y-m-d H:i:s")))->send();
-        $result = _MainModel::table($this->table)->get()->filter(array("id"=>$res))->send();
-        return $this->viewJSON($result);
+        $res = _MainModel::table($this->table)->add(array("id_currency_1" => self::$params_url['id_currency1'], "id_currency_2" => self::$params_url['id_currency2'], "currency_rate" =>self::$params_url['currency_rate'], "date_time"=>date("Y-m-d H:i:s")))->send();
+        return $this->viewJSON($res);
     }
 
 

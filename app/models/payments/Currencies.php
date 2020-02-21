@@ -9,26 +9,18 @@ class Currencies extends _MainModel {
      }*/
 
     public function getListCurrencies(){
-        $params = array('filter', 'search', 'page', 'count');
         $request = _MainModel::table($this->table)->get();
 
-        for($i = 0; $i < count($params); $i++) {
-            if (self::is_var($params[$i])) {
-                if ($params[$i] == 'filter')
-                    $request = $request->filter(array('status' => self::$params_url[$params[$i]]));
+        if (self::is_var('filter'))
+            $request->filter(array('status' => self::$params_url['filter']));
+        if(self::is_var('search'))
+            $request->search(array('name' => "%" . self::$params_url['search'] . "%"));
 
-                if ($params[$i] == 'search')
-                    $request = $request->search(array('name' => "%" . self::$params_url[$params[$i]] . "%"));
-            }
-            else {
-                if($i > 1){
-                    return $this->viewJSON(array('error' => "param $params[$i] do not found"));
-                }
-            }
-        }
+        $page = $this->checkedInt('page', 1);
+        $count = $this->checkedInt('count', 10);
 
-        $result = $request->pagination(intval(self::$params_url['page']),intval(self::$params_url['count']))->send();
-        return $this->viewJSON($result);
+        $result = $request->pagination($page,$count)->send();
+        $this->viewJSON($result);
     }
 
     public function getCurrencyInfo(){
@@ -44,8 +36,7 @@ class Currencies extends _MainModel {
     public function addCurrency(){
         if(self::is_var('name')) {
             $res = _MainModel::table($this->table)->add(array("name" => self::$params_url['name'], "status" => "available"))->send();
-            $result = _MainModel::table($this->table)->get()->filter(array("id"=>$res))->send();
-            return $this->viewJSON($result);
+            return $this->viewJSON($res);
         }
         else{
             return $this->viewJSON(array('error' => "param 'nickname' do not found"));
