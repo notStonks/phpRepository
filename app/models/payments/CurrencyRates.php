@@ -3,7 +3,7 @@
 
 class CurrencyRates extends _MainModel
 {
-    private $table= "currency_rates";
+    private $table = "currency_rates";
 
     /* public function __construct()
      {
@@ -17,6 +17,10 @@ class CurrencyRates extends _MainModel
             $request->filter(array('status' => self::$params_url['filter']));
         if(self::is_var('search'))
             $request->search(array('id_currency1' => "%" . self::$params_url['search'] . "%"));
+        if(self::is_var('sort')){
+            $this->requireParams(['sort_field']);
+            $request->sort(self::$params_url['sort_field'], self::$params_url['sort']);
+        }
 
         $page = $this->checkedInt('page', 1);
         $count = $this->checkedInt('count', 10);
@@ -26,38 +30,25 @@ class CurrencyRates extends _MainModel
     }
 
     public function getCurrencyRateInfo(){
-        if(self::is_var('id')){
-            $result = _MainModel::table($this->table)->get()->filter(array("id"=> self::$params_url['id']))->send();
-            return $this->viewJSON($result);
-        }
-        else{
-            return $this->viewJSON(array('error' => "key 'id' does not found"));
-        }
+        $this->requireParams(['id']);
+        $result = _MainModel::table($this->table)->get()->filter(array("id"=> self::$params_url['id']))->send();
+        $this->viewJSON($result);
     }
 
     public function addCurrencyRate(){
-        $params = array('id_currency1','id_currency2', 'currency_rate');
-        foreach ($params as $param){
-        if(!self::is_var($param))
-            return $this->viewJSON(array('error' => "key $param does not found"));
-        }
-
+        $this->requireParams(['id_currency1','id_currency2', 'currency_rate']);
         $res = _MainModel::table($this->table)->add(array("id_currency_1" => self::$params_url['id_currency1'], "id_currency_2" => self::$params_url['id_currency2'], "currency_rate" =>self::$params_url['currency_rate'], "date_time"=>date("Y-m-d H:i:s")))->send();
-        return $this->viewJSON($res);
+        $this->viewJSON($res);
     }
 
 
     public function updRate(){
-        $params = array('id', 'nickname', 'status');
-        foreach ($params as $param)
-        {
-            if(!self::is_var($param)){
-                return $this->viewJSON(array('error' => "param $param do not found"));
-            }
-        }
-        _MainModel::table($this->table)->edit(array("nickname" => self::$params_url['nickname'], "status" => self::$params_url['status']), array("id" => self::$params_url['id']))->send();
+
+        $this->requireParams(['id', 'currency_rate']);
+        $res = _MainModel::table($this->table)->edit(array("currency_rate" =>self::$params_url['currency_rate'], "date_time"=>date("Y-m-d H:i:s")), array('id'=>self::$params_url['id']))->send();
+
         $result = _MainModel::table($this->table)->get()->filter(array("id"=> self::$params_url['id']))->send();
-        return $this->viewJSON($result);
+        $this->viewJSON($result);
     }
 
 

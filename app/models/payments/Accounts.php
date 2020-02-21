@@ -1,7 +1,7 @@
 <?php 
 
 class Accounts extends _MainModel {
-    private $table= "accounts";
+    private $table = "accounts";
 
     /* public function __construct()
      {
@@ -15,6 +15,10 @@ class Accounts extends _MainModel {
             $request->filter(array('status' => self::$params_url['filter']));
         if(self::is_var('search'))
             $request->search(array('id_user' => "%" . self::$params_url['search'] . "%"));
+        if(self::is_var('sort')){
+            $this->requireParams(['sort_field']);
+            $request->sort(self::$params_url['sort_field'], self::$params_url['sort']);
+        }
 
         $page = $this->checkedInt('page', 1);
         $count = $this->checkedInt('count', 10);
@@ -24,39 +28,29 @@ class Accounts extends _MainModel {
     }
 
     public function getAccountInfo(){
-        if(self::is_var('id')){
-
-            $result = _MainModel::table($this->table)->get()->filter(array("id"=> self::$params_url['id']))->send();
-            $this->viewJSON($result);
-        }
-        else{
-            return $this->viewJSON(array('error' => "param 'id' do not found"));
-        }
+        $this->requireParams(['id']);
+        $result = _MainModel::table($this->table)->get()->filter(array("id"=> self::$params_url['id']))->send();
+        $this->viewJSON($result);
     }
 
     public function addAccount() {
         $this->requireParams(['id_user', 'id_currency']);
-
         $res = _MainModel::table($this->table)->add(array("id_user" => self::$params_url['id_user'], "id_currency" => self::$params_url['id_currency'], "date_creation" => date("Y-m-d H:i:s"), "amount_of_money" => 0, "status" => "unblocked"))->send();
-        return $this->viewJSON($res);
+        $this->viewJSON($res);
     }
 
     public function deleteAccount() {
-        if(self::is_var('id')) {
-            _MainModel::table($this->table)->delete(array("id"=> self::$params_url['id']))->send();
-            $result = _MainModel::table($this->table)->get()->send();
-            return $this->viewJSON($result);
-        }
-        else{
-            return $this->viewJSON(array('error' => "param 'id' do not found"));
-        }
+        $this->requireParams(['id']);
+        _MainModel::table($this->table)->delete(array("id"=> self::$params_url['id']))->send();
+        $result = _MainModel::table($this->table)->get()->send();
+        $this->viewJSON($result);
     }
 
     public function editAccountStatus() {
         $this->requireParams(['id', 'status']);
         _MainModel::table($this->table)->edit(array("status" => self::$params_url['status']), array("id" => self::$params_url['id']))->send();
         $result = _MainModel::table($this->table)->get()->filter(array("id"=> self::$params_url['id']))->send();
-        return $this->viewJSON($result);
+        $this->viewJSON($result);
     }
 
 
