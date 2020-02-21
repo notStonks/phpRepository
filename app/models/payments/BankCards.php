@@ -69,8 +69,8 @@ class BankCards extends _MainModel {
                 return $this->viewJSON(array('error' => "key $param do not found"));
             }
         }
-        _MainModel::table($this->bank)->edit(array("status"=>self::$params_url['status']), array("id"=> self::$params_url['id']))->send();
-        $result = _MainModel::table($this->bank)->get()->filter(array("id"=> self::$params_url['id']))->send();
+        _MainModel::table($this->table)->edit(array("status"=>self::$params_url['status']), array("id"=> self::$params_url['id']))->send();
+        $result = _MainModel::table($this->table)->get()->filter(array("id"=> self::$params_url['id']))->send();
         return $this->viewJSON($result);
     }
 }
