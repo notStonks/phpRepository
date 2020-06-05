@@ -9,6 +9,7 @@ class BankCardsPresenter extends MainPresenter {
     public function deleteCard(){echo (new BankCards())->deleteCard();}
     public function getCardInfo(){echo (new BankCards())->getCardInfo();}
     public function editCardStatus(){ echo (new BankCards())->editCardStatus(); }
+    public function editCardName(){ echo (new BankCards())->editCardName(); }
 
 }
 

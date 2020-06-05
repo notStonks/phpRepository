@@ -9,5 +9,6 @@ class CurrencyRatesPresenter
     public function getCurrencyRateInfo(){ echo (new CurrencyRates())->getCurrencyRateInfo(); }
     public function addCurrencyRate(){ echo (new CurrencyRates())->addCurrencyRate(); }
     public function updRate(){ echo (new CurrencyRates())->updRate(); }
+    public function updRateCB(){ echo (new CurrencyRates())->updRateCB(); }
 
 }

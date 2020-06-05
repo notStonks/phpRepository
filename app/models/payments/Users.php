@@ -1,14 +1,8 @@
 <?php
-
 class Users extends _MainModel {
     private $table= "users";
     private $bank = "bank_cards";
     private $acc = "accounts";
-
-   /* public function __construct()
-    {
-        //parent::__construct();
-    }*/
 
     public function getListUsers(){
         $request = _MainModel::table($this->table)->get();
@@ -24,11 +18,12 @@ class Users extends _MainModel {
         $count = $this->checkedInt('count', 10);
 
         $result = $request->pagination($page,$count)->send();
+
         $this->viewJSON($result);
     }
 
 
-    public function getListCards(){
+   /* public function getListCards(){
         $this->requireParams(['id']);
 
         $page = $this->checkedInt('page', 1);
@@ -37,7 +32,7 @@ class Users extends _MainModel {
         $result = _MainModel::table($this->bank)->get()->filter(array("id_user" => self::$params_url['id']))->pagination($page,$count)->send();
         $this->viewJSON($result);
     }
-
+*/
     public function getListAccounts(){
         $this->requireParams(['id']);
 
@@ -48,22 +43,22 @@ class Users extends _MainModel {
         $this->viewJSON($result);
     }
 
-    public function editUserCardStatus(){
+  /*  public function editUserCardStatus(){
         $this->requireParams(['card_id', 'status']);
 
         _MainModel::table($this->bank)->edit(array("status"=>self::$params_url['status']), array("id"=> self::$params_url['card_id']))->send();
         $result = _MainModel::table($this->bank)->get()->filter(array("id"=> self::$params_url['card_id']))->send();
         $this->viewJSON($result);
     }
-
-    public function editUserCardName(){
+*/
+  /*  public function editUserCardName(){
         $this->requireParams(['card_id', 'user_name']);
 
         _MainModel::table($this->bank)->edit(array("user_name"=>self::$params_url['user_name']), array("id"=> self::$params_url['card_id']))->send();
         $result = _MainModel::table($this->bank)->get()->filter(array("id"=> self::$params_url['card_id']))->send();
         $this->viewJSON($result);
     }
-
+*/
     public function getUserInfo(){
         $this->requireParams(['id']);
 
@@ -73,35 +68,55 @@ class Users extends _MainModel {
 
     public function addUser(){
         $this->requireParams(['nickname']);
-
-        $res = _MainModel::table($this->table)->add(array("nickname" => self::$params_url['nickname'], "status" => "unblocked"))->send();
-        $this->viewJSON($res);
-
+        $mas = _MainModel::table($this->table)->get(array('id'))->send();
+        $prev = $mas[count($mas)-1]['id'];
+        $countAfter = _MainModel::table($this->table)->add(array("nickname" => self::$params_url['nickname'], "status" => "unblocked"))->send();
+        if($countAfter > $prev)
+            $this->viewJSON("1");
+        else $this->viewJSON("-1");
     }
 
     public function deleteUser(){
         $this->requireParams(['id']);
-
+        $countBefore = count(_MainModel::table($this->table)->get(array('id'))->send());
         _MainModel::table($this->table)->delete(array("id"=> self::$params_url['id']))->send();
-        $result = _MainModel::table($this->table)->get()->send();
-        $this->viewJSON($result);
+        $countAfter = count(_MainModel::table($this->table)->get(array('id'))->send());
+        if($countAfter < $countBefore)
+            $this->viewJSON("1");
+        else $this->viewJSON("-1");
     }
-
+    private function AccountsStatusChange(){
+        $status = self::$params_url['status'];
+        $oldStatus = _MainModel::table($this->table)->get()->filter(array("id" => self::$params_url['id']))->send()[0]['status'];
+        if(($status == "blocked" && $oldStatus == "unblocked") || ($status == "unblocked"  && $oldStatus == "blocked")){
+            _MainModel::table($this->acc)->edit(array("status" => self::$params_url['status']), array("id_user" => self::$params_url['id']))->send();
+        }
+ }
     public function editUser(){
         $this->requireParams(['id', 'nickname', 'status']);
-
+        $this->AccountsStatusChange();
         _MainModel::table($this->table)->edit(array("nickname" => self::$params_url['nickname'], "status" => self::$params_url['status']), array("id" => self::$params_url['id']))->send();
-        $result = _MainModel::table($this->table)->get()->filter(array("id"=> self::$params_url['id']))->send();
-        $this->viewJSON($result);
+        //$result = _MainModel::table($this->table)->get()->filter(array("id"=> self::$params_url['id']))->send();
+        $this->viewJSON("1");
     }
-
+    public function editUserStatus(){
+        $this->requireParams(['id', 'status']);
+        $this->AccountsStatusChange();
+        _MainModel::table($this->table)->edit(array( "status" => self::$params_url['status']), array("id" => self::$params_url['id']))->send();
+        $this->viewJSON("1");
+    }
     private function requireParams($arr) {
         if (!is_array($arr))
             throw new InvalidArgumentException('array required');
-        $keys = array_keys(self::$params_url);
-        $diff = array_diff($arr, $keys);
-        if (!empty($diff)) {
-            self::viewJSON(array('error' => implode(', ', $diff) . ' required'));
+
+        $require = array();
+        foreach ($arr as $val)
+            if(!self::is_var($val))
+                array_push($require, $val);
+
+
+        if(!empty($require)){
+            self::viewJSON(array('code'=>'-2','error' => implode(', ', $require) . ' required'));
             die();
         }
     }
