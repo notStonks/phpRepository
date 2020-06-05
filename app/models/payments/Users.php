@@ -22,17 +22,6 @@ class Users extends _MainModel {
         $this->viewJSON($result);
     }
 
-
-   /* public function getListCards(){
-        $this->requireParams(['id']);
-
-        $page = $this->checkedInt('page', 1);
-        $count = $this->checkedInt('count', 10);
-
-        $result = _MainModel::table($this->bank)->get()->filter(array("id_user" => self::$params_url['id']))->pagination($page,$count)->send();
-        $this->viewJSON($result);
-    }
-*/
     public function getListAccounts(){
         $this->requireParams(['id']);
 
@@ -43,22 +32,6 @@ class Users extends _MainModel {
         $this->viewJSON($result);
     }
 
-  /*  public function editUserCardStatus(){
-        $this->requireParams(['card_id', 'status']);
-
-        _MainModel::table($this->bank)->edit(array("status"=>self::$params_url['status']), array("id"=> self::$params_url['card_id']))->send();
-        $result = _MainModel::table($this->bank)->get()->filter(array("id"=> self::$params_url['card_id']))->send();
-        $this->viewJSON($result);
-    }
-*/
-  /*  public function editUserCardName(){
-        $this->requireParams(['card_id', 'user_name']);
-
-        _MainModel::table($this->bank)->edit(array("user_name"=>self::$params_url['user_name']), array("id"=> self::$params_url['card_id']))->send();
-        $result = _MainModel::table($this->bank)->get()->filter(array("id"=> self::$params_url['card_id']))->send();
-        $this->viewJSON($result);
-    }
-*/
     public function getUserInfo(){
         $this->requireParams(['id']);
 
