@@ -60,27 +60,6 @@ class Currencies extends _MainModel {
         }
     }
 
-    /*public function addCurrency1(){
-
-
-            $res = self::$params_url['id'];
-
-            $ids = _MainModel::table($this->table)->get(array("id"))->send();
-            $numCurr = count($ids);
-            //var_dump();
-            //_MainModel::table($this->rates)->add(array("id_currency_1" => $res, "id_currency_2" => $res, "currency_rate" => 1, "date_time"=>date("Y-m-d H:i:s")))->send();
-            for($i = 0;$i < $numCurr; $i++){
-                if($res != $ids[$i]['id']){
-                _MainModel::table($this->rates)->add(array("id_currency_1" => $res, "id_currency_2" => $ids[$i]['id'], "currency_rate" => 0, "date_time"=>date("Y-m-d H:i:s")))->send();
-                _MainModel::table($this->rates)->add(array("id_currency_1" => $ids[$i]['id'], "id_currency_2" => $res, "currency_rate" => 0, "date_time"=>date("Y-m-d H:i:s")))->send();
-                }
-            }
-            //(new CurrencyRates())->updRateCB();
-            if($res > 0)
-                $this->viewJSON("1");
-            //$this->viewJSON($res);
-    }*/
-
     public function editCurrency(){
         $this->requireParams(['id']);
         $paramsArray = array();

@@ -7,14 +7,8 @@ class LoginSys extends _MainModel
 
     public function Register(){
         $this->requireParams(['login', 'password','first_name', 'second_name','email']);
-        //var_dump(self::is_var(self::$params_url['login']));
-        /*if(!(self::is_var('login'))){
-            $this->viewJSON("-4");
-            die();
-        }*/
 
         $request = _MainModel::table($this->table)->get()->filter(array('login' => self::$params_url['login'] ))->send();
-        //var_dump($request);
         if($request != null){
             $this->viewJSON("-1");
             die();
@@ -39,8 +33,6 @@ class LoginSys extends _MainModel
         $password = self::$params_url['password'];
         $result = _MainModel::table($this->table)->get()->search(array('login' => self::$params_url['login']))->send();
 
-            //if (self::is_var('login') && self::is_var('password')){
-
         if($result != null)
             if(password_verify($password, $result[0]['password']))
                 $this->viewJSON($result[0]['id']);
@@ -63,12 +55,5 @@ class LoginSys extends _MainModel
             die();
         }
     }
-        /*$keys = array_keys(self::$params_url);
-        $diff = array_diff($arr, $keys);
-        if (!empty($diff)) {
-            self::viewJSON(array('code'=>'-2','error' => implode(', ', $diff) . ' required'));
-            die();
-        }
-    }*/
 }
 ?>

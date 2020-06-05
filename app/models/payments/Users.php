@@ -69,7 +69,6 @@ class Users extends _MainModel {
         $this->requireParams(['id', 'nickname', 'status']);
         $this->AccountsStatusChange();
         _MainModel::table($this->table)->edit(array("nickname" => self::$params_url['nickname'], "status" => self::$params_url['status']), array("id" => self::$params_url['id']))->send();
-        //$result = _MainModel::table($this->table)->get()->filter(array("id"=> self::$params_url['id']))->send();
         $this->viewJSON("1");
     }
     public function editUserStatus(){
