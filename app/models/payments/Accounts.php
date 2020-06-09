@@ -60,14 +60,38 @@ class Accounts extends _MainModel {
         $userStatus = _MainModel::table($this->users)->get()->filter(array("id"=> $userId))->send()[0]['status'];
 
         if($userStatus == "blocked"){
-            $this->viewJSON(array('code'=>"-1",'error' =>"The user of this account is blocked"));
+            $this->viewJSON("-1");
             die();
         }
         _MainModel::table($this->table)->edit(array("status" => self::$params_url['status']), array("id" => self::$params_url['id']))->send();
-        //$result = _MainModel::table($this->table)->get()->filter(array("id"=> self::$params_url['id']))->send();
         $this->viewJSON("1");
     }
+    public function balanceChange(){
+        $this->requireParams(['id', 'money']);
 
+        /*$curBal = _MainModel::table($this->table)->get(array("amount_of_money"))->filter(array("id"=> self::$params_url['id']))->send()[0]["amount_of_money"];
+        $curBal += self::$params_url['money'];
+        if($curBal <0)
+        {
+            $this->viewJSON("-1");//сумма снятия превышает баланс
+            die();
+        }*/
+        $userId = _MainModel::table($this->table)->get()->filter(array("id"=> self::$params_url['id']))->send()[0]['id_user'];
+        $userStatus = _MainModel::table($this->users)->get()->filter(array("id"=> $userId))->send()[0]['status'];
+
+        $accStatus = _MainModel::table($this->users)->get()->filter(array("id"=> self::$params_url['id']))->send()[0]['status'];
+
+        if($userStatus == "blocked" || $accStatus  == "blocked"){
+            $this->viewJSON("-1");
+            die();
+        }
+        if(self::$params_url['money'] < 0){
+            $this->viewJSON("-3");//значение суммы на счету не может быть отрицательным
+            die();
+        }
+        _MainModel::table($this->table)->edit(array("amount_of_money" => self::$params_url['money']), array("id" => self::$params_url['id']))->send();
+        $this->viewJSON("1");
+    }
     private function requireParams($arr) {
         if (!is_array($arr))
             throw new InvalidArgumentException('array required');

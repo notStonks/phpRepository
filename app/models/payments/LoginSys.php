@@ -7,10 +7,13 @@ class LoginSys extends _MainModel
 
     public function Register(){
         $this->requireParams(['login', 'password','first_name', 'second_name','email']);
-
-        $request = _MainModel::table($this->table)->get()->filter(array('login' => self::$params_url['login'] ))->send();
-        if($request != null){
+        if(strlen(self::$params_url['login']) > 30){
             $this->viewJSON("-1");
+        }
+        $request = _MainModel::table($this->table)->get()->filter(array('login' => self::$params_url['login'] ))->send();
+
+        if($request != null){
+            $this->viewJSON("-3");
             die();
         }
         $mas = _MainModel::table($this->table)->get(array('id'))->send();
@@ -23,7 +26,7 @@ class LoginSys extends _MainModel
             _MainModel::table($this->users)->add(array("id" => $countAfter, "nickname" => self::$params_url['login'], "status" => "unblocked"))->send();
             $this->viewJSON($countAfter);
         }
-        else $this->viewJSON("-3");
+        else $this->viewJSON("-4");
 
 
 
@@ -32,6 +35,8 @@ class LoginSys extends _MainModel
         $this->requireParams(['login', 'password']);
         $password = self::$params_url['password'];
         $result = _MainModel::table($this->table)->get()->search(array('login' => self::$params_url['login']))->send();
+
+            //if (self::is_var('login') && self::is_var('password')){
 
         if($result != null)
             if(password_verify($password, $result[0]['password']))

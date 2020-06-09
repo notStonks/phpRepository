@@ -68,6 +68,7 @@ class Transactions extends _MainModel {
             $this->confirmTransaction();
         }
 
+        //$result = _MainModel::table($this->table)->get()->filter(array("id"=> self::$params_url['id']))->send();
         $this->viewJSON("1");
     }
 
@@ -81,7 +82,7 @@ class Transactions extends _MainModel {
             die();
         }
         /*or id = (select id_currency from accounts where id = :sender)*/
-        $query = "Select name, status From currencies where id = (SELECT id_currency FROM accounts where id = :sender) or
+        $query = "Select charCode, status From currencies where id = (SELECT id_currency FROM accounts where id = :sender) or
                     id = (SELECT id_currency FROM accounts where id = :recipient)";
         $stmt = self::$db->prepare($query);
         try{
@@ -91,11 +92,14 @@ class Transactions extends _MainModel {
             $this->viewJSON(array('code'=>"-3",'error' =>$e->getMessage()));//не удалось получить статусы валют
             die();
         }
+        /*if(!($result_query = $stmt->execute(array('sender'=>self::$params_url['id_sender'], 'recipient'=>self::$params_url['id_recipient'])))){
+            $this->viewJSON(array('error' => "failed to execute the query"));
+        }*/
 
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
         foreach ($rows as $row){
             if($row['status'] != "available"){
-                $this->viewJSON(array('code'=>"-4",'error' => "currency $row[name] is not available"));//валюта не доступна
+                $this->viewJSON(array('code'=>"-4",'error' => "currency $row[charCode] is not available"));//валюта не доступна
                 die();
             }
         }
@@ -111,6 +115,9 @@ class Transactions extends _MainModel {
             $this->viewJSON(array('code'=>"-5",'error' =>$e->getMessage()));//не удалось получить курс валют
             die();
         }
+        /*if(!($result_query = $stmt->execute(array('sender'=>self::$params_url['id_sender'], 'recipient'=>self::$params_url['id_recipient'])))){
+            $this->viewJSON(array('error' => "failed to execute the query"));
+        }*/
 
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -130,6 +137,9 @@ class Transactions extends _MainModel {
             $this->viewJSON(array('code'=>"-7",'error' =>$e->getMessage()));//не удалось получить статусы пользователей и счетов
             die();
         }
+        /*if(!($result_query = $stmt->execute(array('sender'=>self::$params_url['id_sender'], 'recipient'=>self::$params_url['id_recipient'])))){
+            $this->viewJSON(array('error' => "failed to execute the query"));
+        }*/
 
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
         foreach ($rows as $row){

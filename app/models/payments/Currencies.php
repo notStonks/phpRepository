@@ -9,7 +9,7 @@ class Currencies extends _MainModel {
         if (self::is_var('filter'))
             $request->filter(array('status' => self::$params_url['filter']));
         if(self::is_var('search'))
-            $request->search(array('name' => "%" . self::$params_url['search'] . "%"));
+            $request->search(array('charCode' => "%" . self::$params_url['search'] . "%"));
         if(self::is_var('sort')){
             $this->requireParams(['sort_field']);
             $request->sort(self::$params_url['sort_field'], self::$params_url['sort']);
@@ -33,12 +33,12 @@ class Currencies extends _MainModel {
         $this->requireParams(['charCode', 'numCode', 'full_name']);
         $mas = _MainModel::table($this->table)->get(array('id'))->send();
         $prev = $mas[count($mas)-1]['id'];
-        $res = _MainModel::table($this->table)->get(array("name"))->filter(array("name" => self::$params_url['charCode']))->send();
+        $res = _MainModel::table($this->table)->get(array("charCode"))->filter(array("charCode" => self::$params_url['charCode']))->send();
         if($res != null){
             $this->viewJSON("-1");
         }
         else{
-            $countAfter = _MainModel::table($this->table)->add(array("name" => self::$params_url['charCode'], "numCode" => self::$params_url['numCode'], "full_name" => self::$params_url['full_name'], "status" => "available"))->send();
+            $countAfter = _MainModel::table($this->table)->add(array("charCode" => self::$params_url['charCode'], "numCode" => self::$params_url['numCode'], "full_name" => self::$params_url['full_name'], "status" => "available"))->send();
             $ids = _MainModel::table($this->table)->get(array("id"))->send();
             $numCurr = count($ids);
 
@@ -60,19 +60,60 @@ class Currencies extends _MainModel {
         }
     }
 
+    /*public function addCurrency1(){
+
+
+            $res = self::$params_url['id'];
+
+            $ids = _MainModel::table($this->table)->get(array("id"))->send();
+            $numCurr = count($ids);
+            //var_dump();
+            //_MainModel::table($this->rates)->add(array("id_currency_1" => $res, "id_currency_2" => $res, "currency_rate" => 1, "date_time"=>date("Y-m-d H:i:s")))->send();
+            for($i = 0;$i < $numCurr; $i++){
+                if($res != $ids[$i]['id']){
+                _MainModel::table($this->rates)->add(array("id_currency_1" => $res, "id_currency_2" => $ids[$i]['id'], "currency_rate" => 0, "date_time"=>date("Y-m-d H:i:s")))->send();
+                _MainModel::table($this->rates)->add(array("id_currency_1" => $ids[$i]['id'], "id_currency_2" => $res, "currency_rate" => 0, "date_time"=>date("Y-m-d H:i:s")))->send();
+                }
+            }
+            //(new CurrencyRates())->updRateCB();
+            if($res > 0)
+                $this->viewJSON("1");
+            //$this->viewJSON($res);
+    }*/
+
     public function editCurrency(){
         $this->requireParams(['id']);
         $paramsArray = array();
-       // $request = _MainModel::table($this->table);
+        $curentCur = _MainModel::table($this->table)->get()->filter(array('id' => self::$params_url['id'] ))->send();
 
-        if (self::is_var('charCode'))
-            $paramsArray['name'] = self::$params_url['charCode'];
-        if (self::is_var('numCode'))
+        if (self::is_var('charCode')){
+            $paramsArray['charCode'] = self::$params_url['charCode'];
+            $allChar = _MainModel::table($this->table)->get(array("charCode"))->filter(array('charCode' => self::$params_url['charCode']))->send()[0]['charCode'];
+            if(($curentCur[0]['charCode'] != self::$params_url['charCode'])&&($allChar == self::$params_url['charCode'])){
+                $this->viewJSON("-1");//данный символьный код уже занят
+                die();
+            }
+        }
+        if (self::is_var('numCode')){
             $paramsArray['numCode'] = self::$params_url['numCode'];
-        if (self::is_var('full_name'))
+            $allNum = _MainModel::table($this->table)->get(array("numCode"))->filter(array('numCode' => self::$params_url['numCode']))->send()[0]['numCode'];
+            if(($curentCur[0]['numCode'] != self::$params_url['numCode'])&&($allNum == self::$params_url['numCode'])){
+                $this->viewJSON("-3");//данный цифровой код уже занят
+                die();
+            }
+
+        }
+        if (self::is_var('full_name')){
             $paramsArray['full_name'] = self::$params_url['full_name'];
+            $allName = _MainModel::table($this->table)->get(array("full_name"))->filter(array('full_name' => self::$params_url['full_name']))->send()[0]['full_name'];
+            if(($curentCur[0]['full_name'] != self::$params_url['full_name'])&&($allName == self::$params_url['full_name'])){
+                $this->viewJSON("-4");//данное название уже занято
+                die();
+            }
+        }
         if (self::is_var('status'))
             $paramsArray['status'] = self::$params_url['status'];
+
 
         _MainModel::table($this->table)->edit($paramsArray, array("id"=> self::$params_url['id']))->send();
         //$result = _MainModel::table($this->table)->get()->filter(array("id"=> self::$params_url['id']))->send();
